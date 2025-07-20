@@ -98,7 +98,7 @@
 
   <input id="raad-invoer" maxlength="5" placeholder="Tik 'n woord" autofocus />
   <br />
-  <button onclick="stuurRaaiskoot()">Raai</button>
+  <button onclick="stuurRaaiskoot()">Voer in</button>
   <div id="boodskap"></div>
 
   <div id="sleutelbord"></div>
@@ -109,8 +109,9 @@
 
   <script>
     const woordLys = [
-      "blare", "staan", "vloer", "krans", "trots", "vrees", "spook", "somer", "storm", "verre",
-      "toets", "brief", "klank", "skaap", "snoei", "kamers", "houer", "koers"
+      "blare", "staan", "vloer", "krans", "trots", "vrees", "spook",
+      "somer", "storm", "verre", "toets", "brief", "klank", "skaap",
+      "snoei", "kamers", "houer", "koers"
     ];
 
     const vandagIndex = Math.floor((Date.now() - new Date("2024-01-01")) / 86400000);
@@ -188,23 +189,46 @@
 
     function werkBordOp() {
       const tegels = document.querySelectorAll(".tegel");
+
       pogings.forEach((woord, ry) => {
+        const letterStatus = Array(5).fill("verkeerd");
+        const letterCount = {};
+
+        for (const l of teikenWoord) {
+          letterCount[l] = (letterCount[l] || 0) + 1;
+        }
+
+        for (let i = 0; i < 5; i++) {
+          if (woord[i] === teikenWoord[i]) {
+            letterStatus[i] = "korrek";
+            letterCount[woord[i]]--;
+          }
+        }
+
+        for (let i = 0; i < 5; i++) {
+          if (letterStatus[i] === "korrek") continue;
+          if (teikenWoord.includes(woord[i]) && letterCount[woord[i]] > 0) {
+            letterStatus[i] = "gedeel";
+            letterCount[woord[i]]--;
+          }
+        }
+
         for (let i = 0; i < 5; i++) {
           const letter = woord[i];
           const tegel = tegels[ry * 5 + i];
           tegel.textContent = letter.toUpperCase();
-          if (letter === teikenWoord[i]) {
-            tegel.classList.add("korrek");
+          tegel.classList.add(letterStatus[i]);
+
+          if (letterStatus[i] === "korrek") {
             sleutelStatus[letter] = "korrek";
-          } else if (teikenWoord.includes(letter)) {
-            if (sleutelStatus[letter] !== "korrek") sleutelStatus[letter] = "gedeel";
-            tegel.classList.add("gedeel");
-          } else {
-            if (!sleutelStatus[letter]) sleutelStatus[letter] = "verkeerd";
-            tegel.classList.add("verkeerd");
+          } else if (letterStatus[i] === "gedeel" && sleutelStatus[letter] !== "korrek") {
+            sleutelStatus[letter] = "gedeel";
+          } else if (!sleutelStatus[letter]) {
+            sleutelStatus[letter] = "verkeerd";
           }
         }
       });
+
       werkSleutelbord();
     }
 
@@ -226,6 +250,10 @@
         if (wen) {
           stats.wen = (stats.wen || 0) + 1;
           stats.streek = (stats.streek || 0) + 1;
+
+          const pogingAantal = pogings.length;
+          stats.pogingTelling = stats.pogingTelling || {};
+          stats.pogingTelling[pogingAantal] = (stats.pogingTelling[pogingAantal] || 0) + 1;
         } else {
           stats.streek = 0;
         }
@@ -238,11 +266,21 @@
 
     function wysStats() {
       const stats = JSON.parse(localStorage.getItem("woordStats") || "{}");
+      let pogingData = "";
+      if (stats.pogingTelling) {
+        pogingData = "<ul>";
+        Object.entries(stats.pogingTelling).forEach(([poging, keer]) => {
+          pogingData += `<li>${keer} keer gewen in ${poging} poging(e)</li>`;
+        });
+        pogingData += "</ul>";
+      }
+
       statsDiv.innerHTML = `
         <p>Gespeel: ${stats.gespeel || 0}</p>
         <p>Gewen: ${stats.wen || 0}</p>
         <p>Streek: ${stats.streek || 0}</p>
         <p>Laas gespeel: ${stats.laaste || "Nog nie"}</p>
+        ${pogingData}
       `;
     }
 
@@ -250,8 +288,8 @@
       let result = `Woord van die Dag – ${pogings.length}/${maksimumPogings}\n`;
       pogings.forEach(woord => {
         for (let i = 0; i < 5; i++) {
-          if (woord[i] === teikenWoord[i]) result += "🟩"; // green
-          else if (teikenWoord.includes(woord[i])) result += "🟨"; // yellow
+          if (woord[i] === teikenWoord[i]) result += "🟩";
+          else if (teikenWoord.includes(woord[i])) result += "🟨";
           else result += "⬛";
         }
         result += "\n";
