@@ -1,70 +1,92 @@
 <!DOCTYPE html>
 <html lang="af">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Woord van die Dag</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WoorVirDieDag</title>
   <style>
     body {
       font-family: sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
-      background: #f3f3f3;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 1rem;
     }
     h1 {
-      text-align: center;
-      margin-bottom: 10px;
+      margin-bottom: 0.5rem;
     }
     #game {
       display: grid;
-      grid-template-columns: repeat(5, 50px);
+      grid-template-columns: repeat(5, 60px);
       gap: 5px;
-      margin-bottom: 20px;
+      margin: 20px 0;
     }
     .tile {
-      width: 50px;
-      height: 50px;
+      width: 60px;
+      height: 60px;
       background: white;
       border: 2px solid #ccc;
-      font-size: 1.5rem;
-      text-align: center;
-      line-height: 50px;
+      font-size: 2rem;
       text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
     }
     .correct { background: #6aaa64; color: white; }
     .present { background: #c9b458; color: white; }
     .absent  { background: #787c7e; color: white; }
 
-    #keyboard {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 5px;
+    #keyboard-container {
+      width: 100%;
       max-width: 500px;
-      margin: 0 auto;
+      margin: 10px auto;
+    }
+    #keyboard div {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 5px;
     }
     .key {
       padding: 10px;
       background: #ddd;
       text-align: center;
-      cursor: pointer;
       border-radius: 5px;
+      margin: 2px;
+      flex: 1;
+      font-weight: bold;
+      font-size: 1rem;
+      min-width: 10%;
+      max-width: 10%;
     }
     .key:active {
       background: #bbb;
     }
+
     #message {
-      margin: 10px;
-      color: #333;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #444;
+    }
+
+    @media (max-width: 600px) {
+      .tile {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Woord van die Dag 🇿🇦</h1>
+  <h1>WoorVirDieDag</h1>
   <div id="game"></div>
+  <div id="keyboard-container">
+    <div id="keyboard"></div>
+  </div>
   <div id="message"></div>
-  <div id="keyboard"></div>
 
   <script>
     const wordList = ['plant', 'bome', 'droom', 'skaap', 'blink', 'vloer', 'klank', 'groot', 'lekker', 'swart'];
@@ -142,17 +164,23 @@
     }
 
     function drawKeyboard() {
-      const layout = [
-        ...'QWERTYUIOP'.split(''),
-        ...'ASDFGHJKL'.split(''),
-        ...'←ZXCVBNMOK'.split('')
+      const rows = [
+        'QWERTYUIOP',
+        'ASDFGHJKL',
+        '←ZXCVBNMOK'
       ];
-      layout.forEach(key => {
-        const btn = document.createElement('div');
-        btn.className = 'key';
-        btn.textContent = key;
-        btn.onclick = () => handleKey(key);
-        keyboard.appendChild(btn);
+
+      keyboard.innerHTML = '';
+      rows.forEach(row => {
+        const rowDiv = document.createElement('div');
+        row.split('').forEach(letter => {
+          const btn = document.createElement('div');
+          btn.className = 'key';
+          btn.textContent = letter;
+          btn.onclick = () => handleKey(letter);
+          rowDiv.appendChild(btn);
+        });
+        keyboard.appendChild(rowDiv);
       });
     }
 
