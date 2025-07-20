@@ -2,191 +2,267 @@
 <html lang="af">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Woord van die Dag</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      background: #f3f3f3;
-    }
-    h1 {
       text-align: center;
-      margin-bottom: 10px;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 20px;
     }
-    #game {
+
+    h1 { color: #333; }
+
+    #bord {
       display: grid;
-      grid-template-columns: repeat(5, minmax(40px, 60px));
-      gap: 5px;
-      margin-bottom: 20px;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      max-width: 300px;
+      margin: 20px auto;
     }
-    .tile {
+
+    .tegel {
       width: 100%;
       aspect-ratio: 1;
-      background: white;
       border: 2px solid #ccc;
-      font-size: 1.5rem;
-      text-align: center;
-      line-height: 1;
+      font-size: 1.8em;
+      text-transform: uppercase;
+      background: white;
       display: flex;
       align-items: center;
       justify-content: center;
-      text-transform: uppercase;
+      font-weight: bold;
     }
-    .correct { background: #6aaa64; color: white; }
-    .present { background: #c9b458; color: white; }
-    .absent  { background: #787c7e; color: white; }
 
-    #keyboard {
+    .korrek { background-color: #6aaa64; color: white; border: none; }
+    .gedeel { background-color: #c9b458; color: white; border: none; }
+    .verkeerd  { background-color: #787c7e; color: white; border: none; }
+
+    input {
+      font-size: 1.2em;
+      padding: 10px;
+      text-transform: uppercase;
+      width: 140px;
+      max-width: 80%;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      margin-top: 10px;
+      background-color: #6aaa64;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #boodskap {
+      font-weight: bold;
+      margin: 10px;
+    }
+
+    #statistiek {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    #sleutelbord {
       display: grid;
       grid-template-columns: repeat(10, 1fr);
       gap: 5px;
-      max-width: 500px;
-      margin: 0 auto 10px;
+      max-width: 400px;
+      margin: 20px auto;
     }
-    .key {
-      padding: 12px 0;
+
+    .sleutel {
+      padding: 10px;
       background: #ddd;
-      text-align: center;
-      cursor: pointer;
-      border-radius: 5px;
-      user-select: none;
-      font-weight: bold;
-    }
-    .key:active {
-      background: #bbb;
-    }
-    #message {
-      margin: 10px;
-      color: #333;
-    }
-    #submitBtn {
-      padding: 12px 24px;
-      font-size: 1rem;
-      background: #6aaa64;
-      color: white;
       border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
+      font-weight: bold;
+      border-radius: 5px;
+      font-size: 1em;
+      text-transform: uppercase;
     }
-    #submitBtn:active {
-      background: #5a9956;
-    }
+
+    .sleutel.korrek { background: #6aaa64; color: white; }
+    .sleutel.gedeel { background: #c9b458; color: white; }
+    .sleutel.verkeerd { background: #787c7e; color: white; }
   </style>
 </head>
 <body>
-  <h1>Woord van die Dag 🇿🇦</h1>
-  <div id="game"></div>
-  <div id="message"></div>
-  <div id="keyboard"></div>
-  <button id="submitBtn">Voer in</button>
+  <h1>Woord van die Dag</h1>
+  <div id="bord"></div>
+
+  <input id="raad-invoer" maxlength="5" placeholder="Tik 'n woord" autofocus />
+  <br />
+  <button onclick="stuurRaaiskoot()">Raai</button>
+  <div id="boodskap"></div>
+
+  <div id="sleutelbord"></div>
+
+  <button onclick="deelResultaat()">📤 Deel jou poging</button>
+
+  <div id="statistiek"></div>
 
   <script>
-    const wordList = ['plant', 'bome', 'droom', 'skaap', 'blink', 'vloer', 'klank', 'groot', 'lekker', 'swart'];
-    const today = new Date().toISOString().split('T')[0];
-    const wordIndex = Math.floor(new Date(today).getTime() / (1000 * 60 * 60 * 24)) % wordList.length;
-    const secretWord = wordList[wordIndex];
+    const woordLys = [
+      "blare", "staan", "vloer", "krans", "trots", "vrees", "spook", "somer", "storm", "verre",
+      "toets", "brief", "klank", "skaap", "snoei", "kamers", "houer", "koers"
+    ];
 
-    let currentGuess = '';
-    let guesses = [];
-    const maxGuesses = 6;
+    const vandagIndex = Math.floor((Date.now() - new Date("2024-01-01")) / 86400000);
+    const teikenWoord = woordLys[vandagIndex % woordLys.length];
 
-    const game = document.getElementById('game');
-    const keyboard = document.getElementById('keyboard');
-    const message = document.getElementById('message');
-    const submitBtn = document.getElementById('submitBtn');
+    let pogings = [];
+    const maksimumPogings = 6;
 
-    function drawGrid() {
-      game.innerHTML = '';
-      for (let i = 0; i < maxGuesses * 5; i++) {
-        const tile = document.createElement('div');
-        tile.className = 'tile';
-        game.appendChild(tile);
+    const bord = document.getElementById("bord");
+    const invoer = document.getElementById("raad-invoer");
+    const boodskap = document.getElementById("boodskap");
+    const statsDiv = document.getElementById("statistiek");
+    const sleutelbord = document.getElementById("sleutelbord");
+
+    const letters = "qwertyuiopasdfghjklzxcvbnm";
+    const sleutelStatus = {};
+
+    function laaiBord() {
+      bord.innerHTML = "";
+      for (let i = 0; i < maksimumPogings * 5; i++) {
+        const tegel = document.createElement("div");
+        tegel.className = "tegel";
+        bord.appendChild(tegel);
       }
     }
 
-    function updateGrid() {
-      const tiles = document.querySelectorAll('.tile');
-      tiles.forEach((tile, i) => {
-        const row = Math.floor(i / 5);
-        const col = i % 5;
-        const letter = guesses[row]?.[col] ?? (row === guesses.length ? currentGuess[col] : '');
-        tile.textContent = letter ?? '';
-        tile.className = 'tile'; // Reset classes
-        if (guesses[row]) {
-          const result = getLetterResult(guesses[row], secretWord, col);
-          tile.classList.add(result);
+    function laaiSleutelbord() {
+      sleutelbord.innerHTML = "";
+      letters.split("").forEach(l => {
+        const knoppie = document.createElement("button");
+        knoppie.textContent = l;
+        knoppie.className = "sleutel";
+        knoppie.onclick = () => invoer.value += l;
+        knoppie.id = "sleutel-" + l;
+        sleutelbord.appendChild(knoppie);
+      });
+
+      const terug = document.createElement("button");
+      terug.textContent = "←";
+      terug.className = "sleutel";
+      terug.onclick = () => invoer.value = invoer.value.slice(0, -1);
+      sleutelbord.appendChild(terug);
+    }
+
+    function stuurRaaiskoot() {
+      const raai = invoer.value.toLowerCase();
+      if (raai.length !== 5) {
+        boodskap.textContent = "Woord moet 5 letters wees.";
+        return;
+      }
+
+      if (!woordLys.includes(raai)) {
+        boodskap.textContent = "Woord is nie in die lys nie.";
+        return;
+      }
+
+      if (pogings.length >= maksimumPogings) {
+        boodskap.textContent = "Jy is uit pogings!";
+        return;
+      }
+
+      pogings.push(raai);
+      werkBordOp();
+      invoer.value = "";
+      boodskap.textContent = "";
+
+      if (raai === teikenWoord) {
+        boodskap.textContent = "🎉 Reg geraai!";
+        stoorStats(true);
+      } else if (pogings.length === maksimumPogings) {
+        boodskap.textContent = "❌ Uit pogings! Die woord was: " + teikenWoord.toUpperCase();
+        stoorStats(false);
+      }
+    }
+
+    function werkBordOp() {
+      const tegels = document.querySelectorAll(".tegel");
+      pogings.forEach((woord, ry) => {
+        for (let i = 0; i < 5; i++) {
+          const letter = woord[i];
+          const tegel = tegels[ry * 5 + i];
+          tegel.textContent = letter.toUpperCase();
+          if (letter === teikenWoord[i]) {
+            tegel.classList.add("korrek");
+            sleutelStatus[letter] = "korrek";
+          } else if (teikenWoord.includes(letter)) {
+            if (sleutelStatus[letter] !== "korrek") sleutelStatus[letter] = "gedeel";
+            tegel.classList.add("gedeel");
+          } else {
+            if (!sleutelStatus[letter]) sleutelStatus[letter] = "verkeerd";
+            tegel.classList.add("verkeerd");
+          }
         }
       });
+      werkSleutelbord();
     }
 
-    function getLetterResult(guess, word, index) {
-      if (guess[index] === word[index]) return 'correct';
-      else if (word.includes(guess[index])) return 'present';
-      else return 'absent';
-    }
-
-    function submitGuess() {
-      if (currentGuess.length !== 5) return showMessage('Gebruik 5 letters');
-      if (!wordList.includes(currentGuess)) return showMessage('Nie in woordelys nie');
-      guesses.push(currentGuess);
-      if (currentGuess === secretWord) {
-        showMessage('🎉 Jy het dit reg!');
-        saveStats(true);
-      } else if (guesses.length === maxGuesses) {
-        showMessage('Verloor! Die woord was: ' + secretWord);
-        saveStats(false);
+    function werkSleutelbord() {
+      for (const [letter, status] of Object.entries(sleutelStatus)) {
+        const knoppie = document.getElementById("sleutel-" + letter);
+        if (knoppie) {
+          knoppie.className = "sleutel " + status;
+        }
       }
-      currentGuess = '';
-      updateGrid();
     }
 
-    function handleKey(letter) {
-      if (letter === '←') {
-        currentGuess = currentGuess.slice(0, -1);
-      } else if (letter === 'OK') {
-        submitGuess();
-      } else if (currentGuess.length < 5) {
-        currentGuess += letter.toLowerCase();
+    function stoorStats(wen) {
+      const datumSleutel = new Date().toDateString();
+      let stats = JSON.parse(localStorage.getItem("woordStats") || "{}");
+
+      if (!stats.laaste || stats.laaste !== datumSleutel) {
+        stats.gespeel = (stats.gespeel || 0) + 1;
+        if (wen) {
+          stats.wen = (stats.wen || 0) + 1;
+          stats.streek = (stats.streek || 0) + 1;
+        } else {
+          stats.streek = 0;
+        }
+        stats.laaste = datumSleutel;
+        localStorage.setItem("woordStats", JSON.stringify(stats));
       }
-      updateGrid();
+
+      wysStats();
     }
 
-    function showMessage(msg) {
-      message.textContent = msg;
+    function wysStats() {
+      const stats = JSON.parse(localStorage.getItem("woordStats") || "{}");
+      statsDiv.innerHTML = `
+        <p>Gespeel: ${stats.gespeel || 0}</p>
+        <p>Gewen: ${stats.wen || 0}</p>
+        <p>Streek: ${stats.streek || 0}</p>
+        <p>Laas gespeel: ${stats.laaste || "Nog nie"}</p>
+      `;
     }
 
-    function saveStats(won) {
-      let stats = JSON.parse(localStorage.getItem('woordStats') || '{}');
-      stats.games = (stats.games || 0) + 1;
-      stats.wins = (stats.wins || 0) + (won ? 1 : 0);
-      localStorage.setItem('woordStats', JSON.stringify(stats));
-    }
-
-    function drawKeyboard() {
-      const layout = [
-        ...'QWERTYUIOP'.split(''),
-        ...'ASDFGHJKL'.split(''),
-        ...'←ZXCVBNMOK'.split('')
-      ];
-      layout.forEach(key => {
-        const btn = document.createElement('div');
-        btn.className = 'key';
-        btn.textContent = key;
-        btn.onclick = () => handleKey(key);
-        keyboard.appendChild(btn);
+    function deelResultaat() {
+      let result = `Woord van die Dag – ${pogings.length}/${maksimumPogings}\n`;
+      pogings.forEach(woord => {
+        for (let i = 0; i < 5; i++) {
+          if (woord[i] === teikenWoord[i]) result += "🟩"; // green
+          else if (teikenWoord.includes(woord[i])) result += "🟨"; // yellow
+          else result += "⬛";
+        }
+        result += "\n";
       });
+      navigator.clipboard.writeText(result);
+      alert("Resultaat gekopieer! Plak dit in WhatsApp of elders.");
     }
 
-    submitBtn.addEventListener('click', submitGuess);
-
-    drawGrid();
-    drawKeyboard();
-    updateGrid();
+    laaiBord();
+    wysStats();
+    laaiSleutelbord();
   </script>
 </body>
 </html>
