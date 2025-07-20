@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="af">
+<head>
+  <meta charset="UTF-8" />
+  <title>Woord van die Dag</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <h1>Woord van die Dag is aan die laai...</h1>
+  <script>
+    // Verwysing: https://{jou-gebruikersnaam}.github.io/WoorVirDieDag/index.html
+    // Maak seker dat jy die lêernaam reg het (index.html) en in die hoofgids sit.
+
+    const path = window.location.pathname;
+    const isGithub = window.location.hostname.includes("github.io");
+
+    if (!isGithub) {
+      document.body.innerHTML += `<p>⚠️ Maak seker jy gebruik GitHub Pages of 'n regte webbediener om hierdie speletjie te sien.</p>`;
+    } else {
+      const skakel = window.location.href;
+      document.body.innerHTML += `<p>🌐 Jou speletjie behoort beskikbaar te wees by: <br><a href="${skakel}">${skakel}</a></p>`;
+    }
+  </script>
+</body>
+</html>
