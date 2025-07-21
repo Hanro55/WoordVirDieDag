@@ -113,27 +113,78 @@ let reedsGespeelVandag = false;
 const woordLys = [
   "blare", "staan", "vloer", "krans", "trots", "vrees", "spook",
   "somer", "storm", "verre", "toets", "brief", "klank", "skaap",
-  "snoei", "kamers", "houer", "koers"
+  "snoei", "kamers", "houer", "koers" , "awery", "awend", "avorm", "avoca", "augur", "attar", "atoom", "atome", "atlas", "atjie", "aande", "aanhe", "aanhu", "aanja", "aanle", "aanry", "aanse", "aarde", "aards", "abdis", "abdye", "abeba", "abeel", "ablou", "abrup", "abses", "absis", "abuis", "accra", "acres", "acton", "adams", "adder", "addis", "adieu", "admin", "adres", "adret", "afarm", "afbas", "afbel", "afbid", "afbie", "afbou", "afbyt", "afdae", "afdag", "afdak", "afdam", "afdek", "afdig", "afdop", "afdra", "afdun", "afeet", "afend", "afent", "afets", "affek", "afgee", "afgly", "afgod", "afhak", "afhap", "afheg", "afhel", "afhok", "afhol", "afhou", "afhys", "afjak", "afkam", "afkap", "afkom", "afkop", "afkou", "afkry", "afkyk", "aflei", "aflek", "aflig", "aflos", "aflui", "aflyn", "afmat", "afoes", "afoor", "afpak", "afpas", "afpel", "afpen", "afpik", "afpyl", "afrem", "afrig", "afrit", "afrol", "afros", "afruk", "afsak", "afset", "afsit", "afsku", "afsny", "aftak", "aftap", "aftas", "aftel", "aftik", "aftob", "aftog", "aftop", "afval", "afvat", "afvee", "afvra", "afvry", "afvyl", "afwag", "afwas", "afwei", "afwen", "afwin", "afwip", "afwis", "afwit", "afwyk", "afwys", "agaam", "agaat", "agami", "agape", "agarm", "agate", "agave", "ageer", "agens", "agent", "aggie", "agies", "agste", "agtal", "agter", "aguur", "ahooi", "ahorn", "aiais", "aires", "aitsa", "ajoos", "akant", "akker", "akkie", "aknee", "aksep", "akses", "aksie", "akson", "aktes", "akute", "akuut", "aland", "alant", "alarm", "albas", "albei", "album", "aldae", "aldag", "aldan", "aldra", "aldus", "aleer", "algar", "algoa", "alias", "alibi", "alice", "alida", "alkyn", "allah", "allee", "allen", "aller", "alles", "allig", "almag", "almal", "alnag", "aloue", "alras", "alsem", "alton", "altyd", "aluin", "alwys", "amaas", "amara", "ambag", "amber", "amebe", "amens", "amice", "amien", "amine", "amman", "amorf", "ampas", "ampel", "amper", "ampie", "ampre", "ampte", "ampul", "anaal", "anale", "ander", "andes", "andre", "angel", "animo", "anker", "annas", "anode", "anter", "antis", "anton", "anzac", "aoris", "aorta", "apart", "apeks", "apert", "apery", "apies", "appel", "april", "aptyt", "arbei", "arbex", "areas", "areen", "areka", "arena", "arend", "argon", "argot", "arias", "arier", "aries", "aring", "arkel", "armer", "armes", "arnot", "aroab", "aroma", "aroom", "arres", "arrie", "arsis", "artse", "arums", "asbak", "asbes", "asbok", "asbos", "asbus", "ascii", "asdan", "asdic", "asems", "asgat", "asiel", "asier", "asjas", "askar", "askiv", "aslas", "aslyn", "asnog", "asook", "asore", "aspek", "aspen", "aspis", "assam", "assen", "assie", "aster", "asuur", "aswan", "asyne", "ateis", "athol", "atjar"
 ];
+   
+    const maksimumPogings = 6;
 
-const maksimumPogings = 6;
+    // Funksie om 'n array te shuffle (Fisher-Yates algoritme)
+    function shuffleArray(arr) {
+      let a = arr.slice(); // maak 'n kopie
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
 
-const vandagIndex = Math.floor((Date.now() - new Date("2024-01-01")) / 86400000);
-const teikenWoord = woordLys[vandagIndex % woordLys.length];
+    // Laai die geskuide lys en indeks uit localStorage
+    function laaiWoordVolgorde() {
+      let volgorde = JSON.parse(localStorage.getItem("woordVolgorde") || "null");
+      let index = parseInt(localStorage.getItem("woordVolgordeIndex") || "0", 10);
 
-const vandagSleutel = new Date().toDateString();
-const gestoorDatum = localStorage.getItem("woordPogingsDatum");
+      if (!volgorde || !Array.isArray(volgorde) || volgorde.length !== woordLys.length) {
+        volgorde = shuffleArray(woordLys);
+        index = 0;
+        localStorage.setItem("woordVolgorde", JSON.stringify(volgorde));
+        localStorage.setItem("woordVolgordeIndex", index.toString());
+      }
 
-let pogings;
-if (gestoorDatum !== vandagSleutel) {
-  // Nuwe dag – skoon begin
-  localStorage.removeItem("woordPogings");
-  localStorage.setItem("woordPogingsDatum", vandagSleutel);
-  pogings = [];
-} else {
-  // Selfde dag – laai gestoorde pogings
-  pogings = JSON.parse(localStorage.getItem("woordPogings") || "[]");
-}
+      return { volgorde, index };
+    }
+
+    // Stoor die volgorde en indeks
+    function stoorWoordVolgorde(volgorde, index) {
+      localStorage.setItem("woordVolgorde", JSON.stringify(volgorde));
+      localStorage.setItem("woordVolgordeIndex", index.toString());
+    }
+
+    // Kry vandag se woord gebaseer op datum
+    function kryVandagWoord() {
+      const vandag = new Date().toDateString();
+      const laasteDatum = localStorage.getItem("laasteSpeelDatum");
+      let { volgorde, index } = laaiWoordVolgorde();
+
+      if (laasteDatum !== vandag) {
+        // Nuwe dag, gaan na volgende woord
+        index++;
+        if (index >= volgorde.length) {
+          // As einde van lys, shuffle weer en begin van voor
+          volgorde = shuffleArray(woordLys);
+          index = 0;
+        }
+        stoorWoordVolgorde(volgorde, index);
+        localStorage.setItem("laasteSpeelDatum", vandag);
+      }
+
+      return volgorde[index];
+    }
+
+    const teikenWoord = kryVandagWoord();
+
+    let pogings;
+    const vandagSleutel = new Date().toDateString();
+    const gestoorDatum = localStorage.getItem("woordPogingsDatum");
+
+    if (gestoorDatum !== vandagSleutel) {
+      // Nuwe dag – skoon begin
+      localStorage.removeItem("woordPogings");
+      localStorage.setItem("woordPogingsDatum", vandagSleutel);
+      pogings = [];
+    } else {
+      // Selfde dag – laai gestoorde pogings
+      pogings = JSON.parse(localStorage.getItem("woordPogings") || "[]");
+    }
 
 const bord = document.getElementById("bord");
 const invoer = document.getElementById("raad-invoer");
