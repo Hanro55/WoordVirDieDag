@@ -117,11 +117,23 @@ let reedsGespeelVandag = false;
       "snoei", "kamers", "houer", "koers"
     ];
 
-    const vandagIndex = Math.floor((Date.now() - new Date("2024-01-01")) / 86400000);
-    const teikenWoord = woordLys[vandagIndex % woordLys.length];
+   const vandagIndex = Math.floor((Date.now() - new Date("2024-01-01")) / 86400000);
+const teikenWoord = woordLys[vandagIndex % woordLys.length];
 
-    let pogings = [];
-    const maksimumPogings = 6;
+// ✅ Nuwe kode begin hier
+const vandagSleutel = new Date().toDateString();
+const gestoorDatum = localStorage.getItem("woordPogingsDatum");
+
+let pogings;
+if (gestoorDatum !== vandagSleutel) {
+  // Nuwe dag – skoon begin
+  localStorage.removeItem("woordPogings");
+  localStorage.setItem("woordPogingsDatum", vandagSleutel);
+  pogings = [];
+} else {
+  // Selfde dag – laai gestoorde pogings
+  pogings = JSON.parse(localStorage.getItem("woordPogings") || "[]");
+}
 
     const bord = document.getElementById("bord");
     const invoer = document.getElementById("raad-invoer");
@@ -181,6 +193,7 @@ let reedsGespeelVandag = false;
       }
 
       pogings.push(raai);
+      localStorage.setItem("woordPogings", JSON.stringify(pogings));
       werkBordOp();
       invoer.value = "";
       boodskap.textContent = "";
@@ -329,6 +342,7 @@ let reedsGespeelVandag = false;
     laaiBord();
     wysStats();
     laaiSleutelbord();
+    werkBordOp();
   </script>
 </body>
 </html>
