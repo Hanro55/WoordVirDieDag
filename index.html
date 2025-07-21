@@ -285,18 +285,23 @@
     }
 
     function deelResultaat() {
-      let result = `Woord van die Dag – ${pogings.length}/${maksimumPogings}\n`;
-      pogings.forEach(woord => {
-        for (let i = 0; i < 5; i++) {
-          if (woord[i] === teikenWoord[i]) result += "🟩";
-          else if (teikenWoord.includes(woord[i])) result += "🟨";
-          else result += "⬛";
-        }
-        result += "\n";
-      });
-      navigator.clipboard.writeText(result);
-      alert("Resultaat gekopieer! Plak dit in WhatsApp of elders.");
+  let result = `Woord van die Dag – ${pogings.length}/${maksimumPogings}\n`;
+  pogings.forEach(woord => {
+    for (let i = 0; i < 5; i++) {
+      if (woord[i] === teikenWoord[i]) result += "🟩";
+      else if (teikenWoord.includes(woord[i])) result += "🟨";
+      else result += "⬛";
     }
+    result += "\n";
+  });
+
+  // Voeg die skakel by
+  result += "\nSpeel hier: https://hanro55.github.io/WoordVirDieDag/index.html";
+
+  navigator.clipboard.writeText(result);
+  alert("Resultaat gekopieer! Plak dit in WhatsApp of elders.");
+}
+
 
     laaiBord();
     wysStats();
