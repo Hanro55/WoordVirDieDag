@@ -110,17 +110,17 @@
   <script>
 let reedsGespeelVandag = false;
 
-    
-    const woordLys = [
-      "blare", "staan", "vloer", "krans", "trots", "vrees", "spook",
-      "somer", "storm", "verre", "toets", "brief", "klank", "skaap",
-      "snoei", "kamers", "houer", "koers"
-    ];
+const woordLys = [
+  "blare", "staan", "vloer", "krans", "trots", "vrees", "spook",
+  "somer", "storm", "verre", "toets", "brief", "klank", "skaap",
+  "snoei", "kamers", "houer", "koers"
+];
 
-   const vandagIndex = Math.floor((Date.now() - new Date("2024-01-01")) / 86400000);
+const maksimumPogings = 6;
+
+const vandagIndex = Math.floor((Date.now() - new Date("2024-01-01")) / 86400000);
 const teikenWoord = woordLys[vandagIndex % woordLys.length];
 
-// ✅ Nuwe kode begin hier
 const vandagSleutel = new Date().toDateString();
 const gestoorDatum = localStorage.getItem("woordPogingsDatum");
 
@@ -135,157 +135,156 @@ if (gestoorDatum !== vandagSleutel) {
   pogings = JSON.parse(localStorage.getItem("woordPogings") || "[]");
 }
 
-    const bord = document.getElementById("bord");
-    const invoer = document.getElementById("raad-invoer");
-    const boodskap = document.getElementById("boodskap");
-    const statsDiv = document.getElementById("statistiek");
-    const sleutelbord = document.getElementById("sleutelbord");
+const bord = document.getElementById("bord");
+const invoer = document.getElementById("raad-invoer");
+const boodskap = document.getElementById("boodskap");
+const statsDiv = document.getElementById("statistiek");
+const sleutelbord = document.getElementById("sleutelbord");
 
-    const letters = "qwertyuiopasdfghjklzxcvbnm";
-    const sleutelStatus = {};
-    const maksimumPogings = 6;
+const letters = "qwertyuiopasdfghjklzxcvbnm";
+const sleutelStatus = {};
 
-    function laaiBord() {
-      bord.innerHTML = "";
-      for (let i = 0; i < maksimumPogings * 5; i++) {
-        const tegel = document.createElement("div");
-        tegel.className = "tegel";
-        bord.appendChild(tegel);
-      }
-    }
+function laaiBord() {
+  bord.innerHTML = "";
+  for (let i = 0; i < maksimumPogings * 5; i++) {
+    const tegel = document.createElement("div");
+    tegel.className = "tegel";
+    bord.appendChild(tegel);
+  }
+}
 
-    function laaiSleutelbord() {
-      sleutelbord.innerHTML = "";
-      letters.split("").forEach(l => {
-        const knoppie = document.createElement("button");
-        knoppie.textContent = l;
-        knoppie.className = "sleutel";
-        knoppie.onclick = () => invoer.value += l;
-        knoppie.id = "sleutel-" + l;
-        sleutelbord.appendChild(knoppie);
-      });
+function laaiSleutelbord() {
+  sleutelbord.innerHTML = "";
+  letters.split("").forEach(l => {
+    const knoppie = document.createElement("button");
+    knoppie.textContent = l;
+    knoppie.className = "sleutel";
+    knoppie.onclick = () => invoer.value += l;
+    knoppie.id = "sleutel-" + l;
+    sleutelbord.appendChild(knoppie);
+  });
 
-      const terug = document.createElement("button");
-      terug.textContent = "←";
-      terug.className = "sleutel";
-      terug.onclick = () => invoer.value = invoer.value.slice(0, -1);
-      sleutelbord.appendChild(terug);
-    }
+  const terug = document.createElement("button");
+  terug.textContent = "←";
+  terug.className = "sleutel";
+  terug.onclick = () => invoer.value = invoer.value.slice(0, -1);
+  sleutelbord.appendChild(terug);
+}
 
-    function stuurRaaiskoot() {
+function stuurRaaiskoot() {
   if (reedsGespeelVandag) {
     boodskap.textContent = "Jy het reeds vandag gespeel!";
     return;
   }
-      const raai = invoer.value.toLowerCase();
-      if (raai.length !== 5) {
-        boodskap.textContent = "Woord moet 5 letters wees.";
-        return;
-      }
+  const raai = invoer.value.toLowerCase();
+  if (raai.length !== 5) {
+    boodskap.textContent = "Woord moet 5 letters wees.";
+    return;
+  }
 
-      if (!woordLys.includes(raai)) {
-        boodskap.textContent = "Woord is nie in die lys nie.";
-        return;
-      }
+  if (!woordLys.includes(raai)) {
+    boodskap.textContent = "Woord is nie in die lys nie.";
+    return;
+  }
 
-      if (pogings.length >= maksimumPogings) {
-        boodskap.textContent = "Jy is uit pogings!";
-        return;
-      }
+  if (pogings.length >= maksimumPogings) {
+    boodskap.textContent = "Jy is uit pogings!";
+    return;
+  }
 
-      pogings.push(raai);
-      localStorage.setItem("woordPogings", JSON.stringify(pogings));
-      werkBordOp();
-      invoer.value = "";
-      boodskap.textContent = "";
+  pogings.push(raai);
+  localStorage.setItem("woordPogings", JSON.stringify(pogings));
+  werkBordOp();
+  invoer.value = "";
+  boodskap.textContent = "";
 
-      if (raai === teikenWoord) {
-        boodskap.textContent = "🎉 Reg geraai!";
-        stoorStats(true);
-      } else if (pogings.length === maksimumPogings) {
-        boodskap.textContent = "❌ Uit pogings! Die woord was: " + teikenWoord.toUpperCase();
-        stoorStats(false);
+  if (raai === teikenWoord) {
+    boodskap.textContent = "🎉 Reg geraai!";
+    stoorStats(true);
+  } else if (pogings.length === maksimumPogings) {
+    boodskap.textContent = "❌ Uit pogings! Die woord was: " + teikenWoord.toUpperCase();
+    stoorStats(false);
+  }
+}
+
+function werkBordOp() {
+  const tegels = document.querySelectorAll(".tegel");
+
+  pogings.forEach((woord, ry) => {
+    const letterStatus = Array(5).fill("verkeerd");
+    const letterCount = {};
+
+    for (const l of teikenWoord) {
+      letterCount[l] = (letterCount[l] || 0) + 1;
+    }
+
+    for (let i = 0; i < 5; i++) {
+      if (woord[i] === teikenWoord[i]) {
+        letterStatus[i] = "korrek";
+        letterCount[woord[i]]--;
       }
     }
 
-    function werkBordOp() {
-      const tegels = document.querySelectorAll(".tegel");
-
-      pogings.forEach((woord, ry) => {
-        const letterStatus = Array(5).fill("verkeerd");
-        const letterCount = {};
-
-        for (const l of teikenWoord) {
-          letterCount[l] = (letterCount[l] || 0) + 1;
-        }
-
-        for (let i = 0; i < 5; i++) {
-          if (woord[i] === teikenWoord[i]) {
-            letterStatus[i] = "korrek";
-            letterCount[woord[i]]--;
-          }
-        }
-
-        for (let i = 0; i < 5; i++) {
-          if (letterStatus[i] === "korrek") continue;
-          if (teikenWoord.includes(woord[i]) && letterCount[woord[i]] > 0) {
-            letterStatus[i] = "gedeel";
-            letterCount[woord[i]]--;
-          }
-        }
-
-        for (let i = 0; i < 5; i++) {
-          const letter = woord[i];
-          const tegel = tegels[ry * 5 + i];
-          tegel.textContent = letter.toUpperCase();
-          tegel.classList.add(letterStatus[i]);
-
-          if (letterStatus[i] === "korrek") {
-            sleutelStatus[letter] = "korrek";
-          } else if (letterStatus[i] === "gedeel" && sleutelStatus[letter] !== "korrek") {
-            sleutelStatus[letter] = "gedeel";
-          } else if (!sleutelStatus[letter]) {
-            sleutelStatus[letter] = "verkeerd";
-          }
-        }
-      });
-
-      werkSleutelbord();
-    }
-
-    function werkSleutelbord() {
-      for (const [letter, status] of Object.entries(sleutelStatus)) {
-        const knoppie = document.getElementById("sleutel-" + letter);
-        if (knoppie) {
-          knoppie.className = "sleutel " + status;
-        }
+    for (let i = 0; i < 5; i++) {
+      if (letterStatus[i] === "korrek") continue;
+      if (teikenWoord.includes(woord[i]) && letterCount[woord[i]] > 0) {
+        letterStatus[i] = "gedeel";
+        letterCount[woord[i]]--;
       }
     }
 
-    function stoorStats(wen) {
-      const datumSleutel = new Date().toDateString();
-      let stats = JSON.parse(localStorage.getItem("woordStats") || "{}");
+    for (let i = 0; i < 5; i++) {
+      const letter = woord[i];
+      const tegel = tegels[ry * 5 + i];
+      tegel.textContent = letter.toUpperCase();
+      tegel.classList.add(letterStatus[i]);
 
-      if (!stats.laaste || stats.laaste !== datumSleutel) {
-        stats.gespeel = (stats.gespeel || 0) + 1;
-        if (wen) {
-          stats.wen = (stats.wen || 0) + 1;
-          stats.streek = (stats.streek || 0) + 1;
-
-          const pogingAantal = pogings.length;
-          stats.pogingTelling = stats.pogingTelling || {};
-          stats.pogingTelling[pogingAantal] = (stats.pogingTelling[pogingAantal] || 0) + 1;
-        } else {
-          stats.streek = 0;
-        }
-        stats.laaste = datumSleutel;
-        localStorage.setItem("woordStats", JSON.stringify(stats));
+      if (letterStatus[i] === "korrek") {
+        sleutelStatus[letter] = "korrek";
+      } else if (letterStatus[i] === "gedeel" && sleutelStatus[letter] !== "korrek") {
+        sleutelStatus[letter] = "gedeel";
+      } else if (!sleutelStatus[letter]) {
+        sleutelStatus[letter] = "verkeerd";
       }
-
-      wysStats();
     }
+  });
 
-  function wysStats() {
+  werkSleutelbord();
+}
+
+function werkSleutelbord() {
+  for (const [letter, status] of Object.entries(sleutelStatus)) {
+    const knoppie = document.getElementById("sleutel-" + letter);
+    if (knoppie) {
+      knoppie.className = "sleutel " + status;
+    }
+  }
+}
+
+function stoorStats(wen) {
+  const datumSleutel = new Date().toDateString();
+  let stats = JSON.parse(localStorage.getItem("woordStats") || "{}");
+
+  if (!stats.laaste || stats.laaste !== datumSleutel) {
+    stats.gespeel = (stats.gespeel || 0) + 1;
+    if (wen) {
+      stats.wen = (stats.wen || 0) + 1;
+      stats.streek = (stats.streek || 0) + 1;
+
+      const pogingAantal = pogings.length;
+      stats.pogingTelling = stats.pogingTelling || {};
+      stats.pogingTelling[pogingAantal] = (stats.pogingTelling[pogingAantal] || 0) + 1;
+    } else {
+      stats.streek = 0;
+    }
+    stats.laaste = datumSleutel;
+    localStorage.setItem("woordStats", JSON.stringify(stats));
+  }
+
+  wysStats();
+}
+
+function wysStats() {
   const stats = JSON.parse(localStorage.getItem("woordStats") || "{}");
   let pogingData = "";
   if (stats.pogingTelling) {
@@ -304,14 +303,12 @@ if (gestoorDatum !== vandagSleutel) {
     ${pogingData}
   `;
 
-  // 🛑 Kyk of vandag reeds gespeel is
   const vandag = new Date().toDateString();
   if (stats.laaste === vandag) {
     reedsGespeelVandag = true;
     invoer.disabled = true;
     boodskap.textContent = "Jy het reeds vandag gespeel!";
 
-    // ✅ EKSTRA WENK HIER:
     const voerInKnoppie = document.querySelector('button[onclick="stuurRaaiskoot()"]');
     if (voerInKnoppie) {
       voerInKnoppie.disabled = true;
@@ -319,9 +316,7 @@ if (gestoorDatum !== vandagSleutel) {
   }
 }
 
-
-
-    function deelResultaat() {
+function deelResultaat() {
   let result = `Woord van die Dag – ${pogings.length}/${maksimumPogings}\n`;
   pogings.forEach(woord => {
     for (let i = 0; i < 5; i++) {
@@ -331,19 +326,17 @@ if (gestoorDatum !== vandagSleutel) {
     }
     result += "\n";
   });
-
-  // Voeg die skakel by
   result += "\nSpeel hier: https://hanro55.github.io/WoordVirDieDag/index.html";
 
   navigator.clipboard.writeText(result);
   alert("Resultaat gekopieer! Plak dit in WhatsApp of elders.");
 }
 
+laaiBord();
+wysStats();
+laaiSleutelbord();
+werkBordOp();
+</script>
 
-    laaiBord();
-    wysStats();
-    laaiSleutelbord();
-    werkBordOp();
-  </script>
 </body>
 </html>
